@@ -1,0 +1,14 @@
+!.gitignore
+
+# mypy
+.mypy_cache/
+
+# pycharm
+.idea/
+__pycache__/
+
+# source files
+data_materials/
+temp/
+tool_base/
+TermExtraction_Sharing.pptx
