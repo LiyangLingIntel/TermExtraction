@@ -6,6 +6,8 @@
 # pycharm
 .idea/
 __pycache__/
+*/__pycashe__/
+*/*.ini
 
 # source files
 data_materials/

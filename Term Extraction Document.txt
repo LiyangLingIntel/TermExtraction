@@ -1,0 +1,291 @@
+Term Extraction Document
+
+
+** all of below output folders and output filenames are examples of templates
+** methods whitch are not contained in this doc are class pricate method or unfinishied or out-of-date
+
+/seettings.py
+
+	# all related project info and input/output path and folder
+	PROJECT_NAME	SOURCE_FILE		SOURCE_TRUE_TERMS
+	PROJECT_ROOT	OUTPUT_FOLDER	CLEAN_FOLDER	LING_FOLDER		STAT_FOLDER		
+	OUTPUT_ROOT		DATA_SOURCE_FOLDER		TOOL_BASE_FOLDER
+
+	eg.:
+	OUTPUT_ROOT
+		DATA_SOURCE_FOLDER
+			SOURCE_FILE
+			SOURCE_TRUE_TERMS
+		PROJECT_ROOT
+			OUTPUT_FOLDER
+				CLEAN_FOLDER
+				LING_FOLDER
+				STAT_FOLDER
+	TOOL_BASE_FOLDER
+
+
+/data_processing/
+/data_processing/feature_collector.py
+
+	true_term_filter(source_path):
+		:param source_path: str, source true term full path
+    	:return: None
+		:output folder: /tool-base/
+		:output: MULTI_WORD_TRUE_TERMS.json & SINGLE_WORD_TRUE_TERMS.json
+
+    term_feature_statistics(multi_word_term_path)
+    	:param multi_word_term_path: str, multi_word true term full path
+    	:return: none
+		:ouput folder: /tool_base/
+		:output: OVERALL_TERM_TAG_FEATURE_STATISTIC.txt
+		:output folder: /data_materials/OSCE
+		:output: OSCE_TRUE_TERM_TAGGED.txt 
+		 		 OSCE_TAG_FEATURE.txt
+
+/data_processing/data_clean.py
+
+	class DataCleanUtil():
+
+		clean_source_file(output_file_name):
+			data clean entrance
+			:param output_file_name: str, target_file_name without postfix
+        	:return: none
+			:output folder: /data_materials/Ti/180428-0252/Clean_Result/
+			:output: Ti_bad_cleaned_text.txt
+			 		 Ti_good_clean_text.txt
+
+        _get_text_from_tmx(source_path) | _get_text_from_excel(source_path):
+        	:param source_path: source file full path
+        	:return: extract text list
+
+        clean_html(source_text):
+        	:param source_text: list of str, source text list
+        	:return: list of str, cleaned text list
+
+        filter_valid_text(text_list):
+            filter url, css, js, file/path, invalid data, date format, non-en text from text
+        	:param text_list: text_list
+        	:return: good_text_list & bad_text_list
+
+        clean_symbol(source_text):
+        	only applied on filtered good_text
+        	:param source_text: list of str, source text list
+        	:return: list of str, cleaned text list
+
+
+/linguistictools.py
+
+	do_linguistic_processing(source_file_name):
+		entry of linguistic processing
+		:param source_file_name: source cleaned file name
+        :return: none
+        :output folder: /data_materials/Ti/180428-0252/Linguistic_Result/
+		:output: Ti_bio_tagged_sents.txt
+		 		 Ti_candidate_single_word.txt
+		 		 Ti_candidate_multi_word.txt
+		 		 Ti_StopWords_filter_failures.txt
+
+    class TaggerUtil():
+
+    	customize_tagger(train_sets, test_sets = None, tagger_name='Brill_Tagger'):
+    		use train set to train customized tagger
+        	:param tagger_name: str
+        	:param train_sets: list of list of tuple, p-o-s tagged sentence
+        	:param test_sets: list of list of tuple
+        	:return: trained tagger's evaluated score (id applicable)
+        	:output folder: /tool_base/
+        	:output: TAG_PICKLED_Brill_Tagger.txt
+
+        load_tagger_model(tagger_name='Brill_Tagger'):
+        	:param tagger_name: str
+        	:return: tagger model
+
+	class LinguisticsUtil():
+
+		default_corpus_tagger(self, text_list):
+			using default pos tagger and regex chunk parser
+			:param text_list: list of str, cleaned corpus test
+        	:return: list of tagged sentence, BIO tagged corpus
+
+        customized_corpus_tagger(self, text_list, tagger_name='pos_tagger', chunker_name='regex_parser'):
+        	using customized pos tagger and chunk parser
+			:param text_list: list of str, cleaned corpus test
+        	:return: list of str, list of tagged sentence
+        			 list of list of tuple, BIO tagged corpus
+
+        candidate_term_extractor(self, bio_tagged_sents):
+        	extract candidate terms from BIO tagged corpus
+        	:param bio_tagged_sents: list of list of tuple
+        	:return: list of tuple, candidate_term_extractor
+
+        single_word_filter(self, candidate_list):
+        	separate single-word candidates and multi-word candidates into 2 dict
+			:param candidate_list: list of list of tuple
+        	:return: dict of tuple, single_word_term
+        			 dict of tuple, multi_word_term
+        			 key: term tuple, value: ocurrence
+        			 eg. {
+        			 		('Trend', 'Micro'): 10,
+        			 		('Office', 'Scan'): 11
+	        			 }
+
+        stopwords_filter(self, candidate_dict):
+        	filter candidate_dict by stopwords
+        	:param candidate_list: list of list of tuple, candidate_list
+        	:return: dict of tuple, filtered candidates
+        	:output folder: /data_materials/Ti/180428-0252/Linguistic_Result/
+        	:output: Ti_StopWords_filter_failures.txt
+
+        output_cadidates(self, single_word_candidates, multi_word_candidates):
+        	output candidates into file
+        	:param single_word_candidates: dict of tuple
+        	:param multi_word_candidates: dict of tuple
+        	:output folder: /data_materials/Ti/180428-0252/Linguistic_Result/
+        	:output: Ti_StopWords_filter_failures.txt
+
+
+/statistictools
+
+	do_statistic_processing(pickled_candidate_file='PICKLED_multi_word_candidate'):
+		entry of linguistic processing
+		:param pickled_candidate_file: str, pickled multi_word_candidate dict file name
+    	:output folder: /data_materials/Ti/180428-0252/Linguistic_Result/Statistic_Result/
+    	:output: Ti_c_value_ranked_2_word.txt
+    			 there are 6 rank types: frequency, t score, mi, mi^3, dice factor, c value
+
+	do_statistic_processing_by_length(pickled_candidate_file='PICKLED_multi_word_candidate'):
+		entry of linguistic processing and candidates are processed by their length firstly
+		:output folder: /data_materials/Ti/180428-0252/Linguistic_Result/Statistic_Result/
+    	:output: Ti_2_word_c_value_ranked.txt
+    			 there are 6 rank types: frequency, t score, mi, mi^3, dice factor, c value
+
+	class StatisticsUtil():
+
+		_base_info_prepare(self, candidates):
+			called when class object initializing
+			:param candidates: multi_word_candidate_dict
+        	:return: dict, candidates_info {
+        									candidate_str: [ocurrrence, [R1, C1, ...], expect_number],
+        									... 
+        									}
+        			 int, total_number
+
+        frequency_rank(self):
+        	 :return: dict, frequency_ranked_candidates {
+											        	 candidate_str: rank_value,
+											        	 }
+
+        t_score_rank(self):
+			 :return: dict, t_score_ranked_candidates {
+											        	candidate_str: rank_value,
+											        	}
+
+		mi_rank(self):
+
+		mi_3_rank(self):
+
+		dice_factor_rank(self):
+
+		c_value_rank(self):
+
+
+	class ResultProcessUtil():
+
+		pre_analyze(self):
+
+		norm(self):
+
+		classify(self, threshold=None):
+
+		merge(self, *args):
+
+
+/evaluation.py
+
+	class EvaluatUtil():
+
+		_prepare_data(self, checked_file_name):
+			called when initialize class object, 
+			initial self true_positive, true_negative, false_positive, false_negative, new_found dict
+			:param checked_file_name: str, checked term_dict json file name
+    		
+    	precision_recall(self):
+    		:return: float, precision
+    				 float, recall
+    				 float, f_score
+
+    	discover(self):
+    		:return: float, discover_rate
+
+
+/utility.py
+
+	class FileIOUtil(object):
+
+		output_list_to_file(text_list, folder, project_name, target_file_name, time_tag=False):
+			:param text_list:  list of text or terms
+	        :param folder: str, output folder path
+	        :param project_name: str
+	        :param target_file_name: str, without postfix
+	        :param time_tag: bool, add timestamp at the end of file name
+	        				 if false, truncate original file before writing
+	        :output list of text to path: folder + project_name_target_file_name.txt
+
+	    output_dict_to_file(text_dict, folder, project_name, target_file_name, sort=True, time_tag=False):
+	    	similar to output_list_to_file
+	    	:param sort: if true, sort keys by value, then write into file
+
+	    output_to_json(list_or_dict, folder, project_name, target_file_name):
+	    	output list or dict like object into json file
+
+	    output_to_pickled_file(obj, folder, project_name, target_file_name):
+	    	output object into pickle file
+
+	    output_bio_tagged_sents(sents, bio_tagged_sents, folder, projec_name, target_file_name):
+	    	output bio_tagged_sents into text file for correction
+	    	like: text
+	    		  word tokens
+	    		  tags
+	    		  bio_tags
+
+	    input_train_text_from_file(folder_name, source_file_name):
+	    	from manually corrected pos tagged text input train set
+	    	return list of list of (token, tag)
+
+	    input_test_text_from_file(folder_name, source_file_name):
+	    	from manually corrected pos tagged text input test set
+	    	return list of text
+
+	    input_from_json(folder, project_name, source_file_name):
+
+	    input_from_pickled_file(folder, project_name, source_file_name):
+
+	    input_text_from_file(folder, project_name, source_file_name):
+	    	from cleaned text file
+	    	return list of text
+
+	    input_checked_term_from_excel(folder, project_name, source_file_name):
+	    	from term posibility layered tagged excel
+	    	return checked term dict
+	    	like {term_str: [rank value, ..., layer1, layer2, layer3, layer4]}
+
+	class StopWordsUtil(object):
+		stopwords: {word: '',
+					...
+					}
+
+		get_stopwords(self):
+			return stopwords dict
+
+		modify_stopwords(self, append_list=[], delete_list=[]):
+			add new words or delete words from stopwords dict
+
+
+	class PathUtil(object):
+		some files/folders are end with timestamp, this method is to get the latest one
+
+		get_latest_folder(root_path, folder_name, latest_number=0):
+			sort folders under root_path, return No.latest_number folder path which starts with folder_name 
+
+		get_latest_file_name(root_path, file_name, latest_number=0):
+			sort files under root_path, return No.latest_number file name which starts with file_name 

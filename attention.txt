@@ -1,0 +1,130 @@
+1. pos_tagger需要训练，常规的pos_tagger()可能不准确
+   bio_tagger也可以通过训练以提高精度
+// 2. 先尝试编辑正则表达式来进行序列标注
+
+3. 训练标注器时，考虑组合unigramtagger和bigramtagger，进行训练
+4. 待确认，一些常规词和常规短语是否放入术语抽取考虑范围
+
+5. 注意 术语的变体形式
+6. 为每个项目制定 单词术语表， 停用词表 csv
+7. 先通过频率或其他统计指标获得简单的术语，然后通过语言的启发式方式和频率过滤器获得新的复杂的术语（NC-value）
+8. 如果一行只有这一个单词，那么这个单词可以被考虑作为单词术语
+
+// 9. 规范输出文件命名规则
+10. 统计术语长度对术语判断的影响
+// 11. 用pickle把部分中间结果保存到文件里
+12. 关键语句加上注释（比如data clean中一些特殊的正则表达式或者字符串替换）
+// 13. 判断是否有外文的策略是 只要有非英文的外文，整段text抛弃
+14. 术语抽取系统的其中一个目标就是能够发现新的术语
+15. 抽取术语的目的很大程度是为了保持翻译的一致性
+
+术语标注组成规则：
+// · term中不存在VB，而是扩展形式VBD，VBG，VBN
+
+
+
+steps：
+1. 处理term list获取术语用词表（单词）
+// 2. 用单词术语表过滤项目候选属于表；用统计方法过滤多词候选术语表
+
+
+
+todo:
+// 1. 完成当前版本的data_clean，输出clean_data.txt 和 rubbish_data.txt
+//    包括clean meaningless symbol，清除{.*？}, 找出[]只删了一半的原因。
+2. 优化chunk的正则表达式
+2.1 注意chunk正则表达式的四种形式
+NP:
+       {<DT|JJ>}          # chunk determiners and adjectives
+       }<[\.VI].*>+{      # chink any tag beginning with V, I, or .
+       <.*>}{<DT>         # split a chunk at a determiner
+       <DT|JJ>{}<NN.*>    # merge chunk ending with det/adj
+                          # with one starting with a noun
+3. 将候选术语按照术语长度分开进行 统计rank
+3.1. 统计三个项目中不同长度的术语的比例
+3.2. rank前分类和rank后分类
+// 4. 把三个项目里面的单词术语整合成一张表
+// 5. 测试 clean_utility, 确保每种检测最后都能返回true才让文本通过
+// 6. 取消双语对比过滤法————先测试，把双语过滤的内容分别进行string_scan, 收集过滤和被过滤的内容
+// 7. 被淘汰/清洗掉的数据，要输出清洗前的格式 
+// 8. 先做sentence_tokenize, 再做 word_tokenize
+// 9. 训练 针对 tokenize， tag， chunk      ------目前主要还是tag，chunk采用正则的方法
+// 10. 增加 evaluate模块，计算精确度和回归值
+// 11. 手动校正Ti语料，估计用时
+//	Please -- UH      676
+//	please统一成UH，把please后面的单词转成VB），目前没看到有例外的情况
+11.2	首字母大写JJ，修改词性为JJP, 作为专属形容词
+// 11.1 对比尝试训练组合方式，1.stanford vs pos_tag; 2.brill + 1.winner; 3.brill + bigram + 1.winner 
+12. 完成sent_tokenize, tagger 等过程之间增加后处理如，考虑 out.Select结构，在.后面增加空格， 修改please， JJ等标注
+13. 抽取分块时保留BIO标记，然后考虑把被淘汰的重新分块召回
+// 14. 编写从txt文本中读取list的工具函数
+15. true negative recall
+// 16. string_scan过程中替换变量
+17. 考虑在一些情况下用json.dumps代替pickle.dump
+// 18. 术语抽取整体流程： （feature collection）-> data clean --cleaned seg.text--> ligustic process --> statistic process --> evaluate
+19. 完成candidate exract后再做一遍标注和抽取  ----  调查第二季标记抽取结果和第一次差别很大的原因
+// 20. pregrame restructure
+21. 把ranked candidate输出到excel方便审核
+// 22. 停用词表的过滤逻辑
+23. 最后结果要把一开始抽取的单词术语和多词术语整合到一起
+24. 从loser和stopwords failure里面召回时考虑 术语变体， 形如 AB ， B of A
+25. 优化方案： 修改合适的JJ标注为JJP；
+				chunk写正则的时候就以目标词长去设计，然后整套流程只以固定长度的单词为source
+26. 术语审核标注规则：
+					第一级：一定是本项目相关的术语（需要再上交审核）
+					第二级：一定是术语（不追究来源），项目相关词汇
+					第三级：大概率是术语，项目相关常见词汇表达
+					第四级：有可能是术语，或包含前三级的表达
+// 27. 将不同词长的结果分类算出精确度，召回率，发现率，（2-6种词长，所有词）发给spark
+28. 更新程序tool_base, 该用json或pickle的方式保存的数据，确认并修改保存形式
+29. 按照doc里的预期重新输出文件
+// 30. 额外跑一个WFBS
+31. 阈值不明显的问题，考虑归一化之后，在对各个长度的子集，在进行一次归一化 
+32. 统计数据清洗阶段原始数据，被清洗掉的数据，剩下的数据等等
+33. 整理每一步的输出和输入
+
+
+** 第一二天，完成剩余周记，完成毕设材料中需要填写的部分，完成企业实习总结表
+** 第二三天，完成整理项目内容，首先至少半天时间完成毕设论文不需要数据的部分
+** 准备sharing所需要的材料，ppt
+
+
+
+论文问题：
+* 文中是否可以提到企业，公司之类的字眼
+* 论文分类和论文内容是否有影响：工程设计是否可以包含探究性内容
+* 是否存在定位不清晰： 系统 or 模块
+* 论文配图是否要标准的UML图，现在的配图是否标准
+
+论文：
+* 附件1 标注词性表
+* 附录2 系统输入输出列表
+* 附录3 核心正则表达式
+* 人工标注标注校准
+* 预处理： + 数据处理部分（单词真实术语， 多词真实术语）
+* 完成后优化用词，尤其是一些术语，需要规范化，如 本文 语料 文本语料 干扰 噪声等等 系统性能评估——>系统评估指标
+  专家人工处理：交由企业人员处理，人工处理：笔者自己处理
+  训练集和测试集 -> 训练集和验证集      数据集
+* 不做特殊提醒，所用项目均为项目C
+41404 -> 10351
+14547+15275+12764+13657+12971+9052 78266
+
+软硬件验收：
+* 验收表及企业证明
+* 项目源代码
+* 项目说明文档
+
+
+数据统计：
+A：总计294281， 原始数据23196， 
+	<ph> 12821
+
+
+论文&答辩设计
+* 有监督学习和无监督学习，半监督学习
+* 模块的实现方式，方便调用，方便调优， 所有涉及到的模型，词表随着处理的项目越来越多，性能也会越来越强
+
+Click Install Trend Micro Antivirus to launch the installation program.
+[(Click,VB,O), (Install,NNP,B-NP), (Trend,NNP,I-NP), (Micro,NNP,I-NP), (Antivirus,NNP,I-NP), (to,TO,O), (launch,VB,O), (the,DT,O), (installation,NN,B-NP), (program,NN,I-NP),(.,.,O)]
+
+
